@@ -1,5 +1,5 @@
 // import statements
-import { Canvas } from '@react-three/fiber'
+import { Canvas, useFrame } from '@react-three/fiber'
 import { 
   OrbitControls,
   Center,
@@ -7,6 +7,8 @@ import {
   AccumulativeShadows,
   RandomizedLight,
   Environment } from '@react-three/drei'
+import { useRef } from 'react'
+import {easing} from 'maath'
 
 export const App = (
   {position = [-1, 0, 2.5], fov = 25}
@@ -17,11 +19,13 @@ export const App = (
       eventSource={document.getElementById('root')}
       eventPrefix='client'>
       <ambientLight intensity={0.5}/>
-      <Center>
-        <Environment preset='city'/>
-        <Shirt />
-        <Backdrop />
-      </Center>
+      <CameraRig>
+        <Center>
+          <Environment preset='city'/>
+          <Shirt />
+          <Backdrop />
+        </Center>
+      </CameraRig>
       <OrbitControls />
     </Canvas>
   )
@@ -36,7 +40,7 @@ function Shirt(props) {
   )
 }
 
-useGLTF.preload('/shirt.glb')
+
 
 function Backdrop() {
   return(
@@ -64,3 +68,23 @@ function Backdrop() {
     </AccumulativeShadows>
   )
 }
+function CameraRig({ children }) {
+  const group = useRef()
+  useFrame((state, delta) => {
+    easing.dampE(
+      group.current.rotation,
+      [state.pointer.y / 5, -state.pointer.x, 0],
+      0.25,
+      delta
+    )
+  })
+
+  return (
+    <group ref={group}>
+      {children}
+    </group>
+  )
+}
+
+useGLTF.preload('/shirt.glb')
+
